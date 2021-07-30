@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class PdfToAssignmentServiceUtil {
+public class PdfToJsonUtil {
 	
 	public static final String KEY_VLAUE_SEPARATOR = ":";
 	public static final String TAB = "\t";
@@ -46,27 +46,27 @@ public class PdfToAssignmentServiceUtil {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	public String getAssignmentServiceVOJsonFromPDF(InputStream inputStream, PDFparseDetails pdfparseDetails) {
-		return getAssignmentServiceVOJsonFromPDF(inputStream, pdfparseDetails, null);
+	public String getJsonFromPDF(InputStream inputStream, PDFparseDetails pdfparseDetails) {
+		return getJsonFromPDF(inputStream, pdfparseDetails, null);
 	}
 	
-	public String getAssignmentServiceVOJsonFromPDF(InputStream inputStream, PDFparseDetails pdfparseDetails, Map<String, String> additionalDetails) {
+	public String getJsonFromPDF(InputStream inputStream, PDFparseDetails pdfparseDetails, Map<String, String> additionalDetails) {
 		try(PDDocument doc = PDDocument.load(inputStream)){
 			if (!doc.isEncrypted()) {
-				ObjectNode assignmentServiceVONode = mapper.createObjectNode(); 
+				ObjectNode rootNode = mapper.createObjectNode(); 
 				List<PDFPageDetails> pdfPageDetailsList = pdfparseDetails.getPdfPageDetailsList();
 				pdfPageDetailsList.stream()
 				.forEach(pdfPageDetails -> {
 					List<RegionDetails> regionDetailsList = pdfPageDetails.getRegionDetailsList();
 					PDPage page = doc.getPage(pdfPageDetails.getPageNumber());
-					regionDetailsList.stream().forEach(regionDetails -> readRegionsAndSetJsonNode(page, regionDetails, assignmentServiceVONode));
+					regionDetailsList.stream().forEach(regionDetails -> readRegionsAndSetJsonNode(page, regionDetails, rootNode));
 				});
 				
-				String assignmentServiceVOJson = mapper.writeValueAsString(assignmentServiceVONode);
+				String jon = mapper.writeValueAsString(rootNode);
 
-				log.info("PDF to Json: {}", assignmentServiceVOJson);
+				log.info("PDF to Json: {}", json);
 				
-				return assignmentServiceVOJson;
+				return json;
 			}else {
 				log.error("Attachment is encrypted, Unable to parse!!!");
 				return null;
